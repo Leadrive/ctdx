@@ -123,7 +123,7 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 		utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
 
-		client.Finished <- nil
+		client.Finished <- ""
 	}
 }
 
@@ -188,7 +188,7 @@ func (client *TdxClient) OnStockBonus(session *cnet.Session, packet interface{})
 	utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
 
-	client.Finished <- nil
+	client.Finished <- ""
 	return
 }
 
@@ -286,7 +286,7 @@ func (client *TdxClient) OnStockHistory(session *cnet.Session, packet interface{
 	if 0xffff == respNode.Index {
 		// 更新结束
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
-		client.Finished <- nil
+		client.Finished <- ""
 		return
 	}
 

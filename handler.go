@@ -80,9 +80,6 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 
 	market := 0
 
-	logger.Info("data path: %s", client.Configure.GetApp().DataPath)
-	logger.Info("data base: %s", client.Configure.GetTdx().Files.StockList)
-
 	itemSize := utils.SizeStruct(pkg.StockBaseItem{})
 	respNode := packet.(pkg.ResponseNode)
 
@@ -122,8 +119,9 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 	if client.stockBaseDF.Nrow() >= int(client.lastTrade.SZCount + client.lastTrade.SHCount) {
 		// 更新结束
 		client.stockBaseDF.SetNames("code", "name", "market", "unknown1", "unknown2", "unknown3", "price", "bonus1", "bonus2")
-		calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
-		utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
+		stockBasePath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
+		utils.WriteCSV(stockBasePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
+
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
 
 		client.Finished <- nil

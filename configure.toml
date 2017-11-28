@@ -15,6 +15,7 @@
         fin_list_file = "gpcw.txt"  # 财务数据文件列表
     # 通达信一些配置参数
     [app.files]
+        calendar = "/base/calendar.csv.zip"                  # 股票交易日历
         stock_list = "/base/stocks.csv.zip"                  # 通达信商品(股票、基金、指数、债券等)列表信息
         stock_bonus = "/base/bonus.csv.zip"                  # 存放每只股票的分红配股信息
         stock_day = "/history/days/"                         # 每只股票的日K数据

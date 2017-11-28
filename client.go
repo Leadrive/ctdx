@@ -27,7 +27,7 @@ type TdxClient struct {
 	bonusFinishedChan   chan int   // 用于更新权息数据时同步已处理的数据
 
 	Finished    chan interface{}
-	Configure   *comm.IConfigure
+	Configure   comm.IConfigure
 	MainVersion float32		// 软件版本 = 7.29
 	CoreVersion float32		// 数据引擎版本 = 5.895
 	lastTrade   LastTradeModel
@@ -36,7 +36,7 @@ type TdxClient struct {
 	stockbonusDF   dataframe.DataFrame
 }
 
-func NewDefaultTdxClient(configure *comm.IConfigure) *TdxClient {
+func NewDefaultTdxClient(configure comm.IConfigure) *TdxClient {
 	return &TdxClient{MainVersion:7.29, CoreVersion:5.895, Configure:configure, Finished:make(chan interface{})}
 }
 

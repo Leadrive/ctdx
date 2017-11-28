@@ -11,6 +11,7 @@ type CUrls struct {
 }
 
 type CFiles struct {
+	Calendar string `toml:"calendar"`
 	StockList string `toml:"stock_list"`
 	StockBonus string `toml:"stock_bonus"`
 	StockDay string `toml:"stock_day"`

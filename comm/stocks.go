@@ -124,8 +124,8 @@ const (
 /**
  * 获取股票、基金、指数等信息
  */
-func GetFinanceDataFrame(conf *Conf, types ...int) dataframe.DataFrame{
-	stocksPath := fmt.Sprintf("%s%s", conf.App.DataPath, conf.App.Files.StockList)
+func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
+	stocksPath := fmt.Sprintf("%s%s", conf.GetApp().DataPath, conf.GetApp().Files.StockList)
 	colTypes := map[string]series.Type{
 		"code": series.String, "name": series.String, "market": series.Int,
 		"unknown1": series.Int, "unknown2": series.Int, "unknown3": series.Int,

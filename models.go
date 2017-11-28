@@ -1,6 +1,5 @@
 package ctdx
 
-
 type LastTradeModel struct {
 	ServerName string
 	Domain     string

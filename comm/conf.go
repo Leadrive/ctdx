@@ -2,7 +2,6 @@ package comm
 
 import (
 	"log"
-
 	"github.com/BurntSushi/toml"
 )
 
@@ -57,7 +56,6 @@ func (c *Conf) loadDefaults() {
 }
 
 // Will try to parse TOML configuration file.
-
 func (c *Conf) Parse(path string) {
 	c.loadDefaults()
 	if path == "" {

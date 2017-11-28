@@ -17,8 +17,6 @@ type Conf struct {
 		} `toml:"logger"`
 
 		Urls struct {
-			Calendar string `toml:"calendar"`
-			StockBasics string `toml:"stock_basics"`
 			StockFin string `toml:"stock_fin"`
 			FinListFile string `toml:"fin_list_file"`
 		} `toml:"urls"`

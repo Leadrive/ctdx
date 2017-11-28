@@ -12,7 +12,7 @@ import (
 	"github.com/datochan/gcom/utils"
 	"github.com/datochan/gcom/logger"
 
-	pkg "ctdx/packet"
+	pkg "github.com/datochan/ctdx/packet"
 	"github.com/datochan/gcom/cnet"
 )
 

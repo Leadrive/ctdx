@@ -12,8 +12,8 @@ import (
 	"github.com/datochan/gcom/logger"
 	"github.com/datochan/gcom/cnet"
 
-	"ctdx/comm"
-	pkg "ctdx/packet"
+	"github.com/datochan/ctdx/comm"
+	pkg "github.com/datochan/ctdx/packet"
 )
 
 const (

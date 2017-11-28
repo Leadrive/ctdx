@@ -5,7 +5,7 @@ import (
 
 	"github.com/datochan/gcom/cnet"
 
-	pkg "ctdx/packet"
+	pkg "github.com/datochan/ctdx/packet"
 )
 
 type CTdxDispatcher struct {

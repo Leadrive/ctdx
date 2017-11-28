@@ -2,6 +2,10 @@ package: ctdx
 import:
 - package: github.com/BurntSushi/toml
   version: ~0.3.0
+- package: github.com/datochan/ctdx
+  subpackages:
+  - comm
+  - packet
 - package: github.com/datochan/gcom
   subpackages:
   - bytes

@@ -5,17 +5,13 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type BaseApp struct {
+type CApp struct {
 	Mode string `toml:"mode"`
 	DataPath string `toml:"data_path"`
 	Logger struct {
 		Level string `toml:"level"`
 		Name string `toml:"name"`
 	} `toml:"logger"`
-}
-
-type CApp struct {
-	BaseApp
 }
 
 type CTdx struct {

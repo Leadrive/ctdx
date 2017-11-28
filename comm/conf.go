@@ -34,6 +34,11 @@ type CApp struct {
 	Files CFiles  `toml:"files"`
 }
 
+type IConfigure interface {
+	loadDefaults()
+	Parse(path string)
+}
+
 type Conf struct {
 	Tdx struct {
 		DataHost string `toml:"data_host"`
@@ -43,14 +48,6 @@ type Conf struct {
 	App CApp  `toml:"app"`
 }
 
-
-///////////////////////////////////////////////////////////////////
-
-// `Global` section
-
-///////////////////////////////////////////////////////////////////
-
-// Neo Application configuration
 func (c *Conf) loadDefaults() {
 
 	// app

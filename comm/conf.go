@@ -36,6 +36,7 @@ type CApp struct {
 type IConfigure interface {
 	loadDefaults()
 	Parse(path string)
+	GetApp() *CApp
 }
 
 type Conf struct {
@@ -48,7 +49,6 @@ type Conf struct {
 }
 
 func (c *Conf) loadDefaults() {
-
 	// app
 	c.App.Logger.Level = "INFO"
 	c.App.Logger.Name = "ctdx"
@@ -66,4 +66,8 @@ func (c *Conf) Parse(path string) {
 	if _, err := toml.DecodeFile(path, c); err != nil {
 		panic(err)
 	}
+}
+
+func (c *Conf) GetApp() *CApp {
+	return &c.App
 }

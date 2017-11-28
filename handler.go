@@ -80,6 +80,9 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 
 	market := 0
 
+	logger.Info("data path: %s", client.Configure.GetApp().DataPath)
+	logger.Info("data base: %s", client.Configure.GetTdx().Files.StockList)
+
 	itemSize := utils.SizeStruct(pkg.StockBaseItem{})
 	respNode := packet.(pkg.ResponseNode)
 

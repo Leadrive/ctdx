@@ -27,7 +27,7 @@ type TdxClient struct {
 	bonusFinishedChan   chan int   // 用于更新权息数据时同步已处理的数据
 
 	Finished    chan interface{}
-	Configure   *comm.Conf
+	Configure   *comm.IConfigure
 	MainVersion float32		// 软件版本 = 7.29
 	CoreVersion float32		// 数据引擎版本 = 5.895
 	lastTrade   LastTradeModel
@@ -36,7 +36,7 @@ type TdxClient struct {
 	stockbonusDF   dataframe.DataFrame
 }
 
-func NewDefaultTdxClient(configure *comm.Conf) *TdxClient {
+func NewDefaultTdxClient(configure *comm.IConfigure) *TdxClient {
 	return &TdxClient{MainVersion:7.29, CoreVersion:5.895, Configure:configure, Finished:make(chan interface{})}
 }
 
@@ -53,7 +53,7 @@ func (client *TdxClient) Conn(){
 	swProtocol := pkg.NewDefaultProtocol()
 	client.dispatcher = NewCTdxDispatcher()
 
-	client.session, err = cnet.Dial("tcp", client.Configure.Tdx.DataHost,
+	client.session, err = cnet.Dial("tcp", client.Configure.GetTdx().DataHost,
 		swProtocol, client.dispatcher.HandleProc, 0)
 	if err != nil {
 		logger.Error("创建服务器链接失败,err: %v", err)
@@ -216,8 +216,8 @@ func (client *TdxClient) UpdateDays(){
 		start := "19901219"
 		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
 
-		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.App.DataPath,
-			client.Configure.App.Files.StockDay, fileName)
+		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
+			client.Configure.GetApp().Files.StockDay, fileName)
 
 		colTypes := map[string]series.Type{
 			"date": series.Int, "open": series.Float, "low": series.Float, "high": series.Float,
@@ -295,8 +295,8 @@ func (client *TdxClient) UpdateMins(){
 		start := utils.AddDays(utils.Today(), -100)
 		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
 
-		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.App.DataPath,
-			client.Configure.App.Files.StockMin, fileName)
+		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
+			client.Configure.GetApp().Files.StockMin, fileName)
 
 		colTypes := map[string]series.Type{
 			"date": series.Int, "time": series.String, "open": series.Float, "low": series.Float, "high": series.Float,

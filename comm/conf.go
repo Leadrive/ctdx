@@ -33,19 +33,21 @@ type CApp struct {
 	Files CFiles  `toml:"files"`
 }
 
+type CTdx struct {
+	DataHost string `toml:"data_host"`
+	MonitorHost string `toml:"monitor_host"`
+}
+
 type IConfigure interface {
-	loadDefaults()
 	Parse(path string)
-	GetApp() *CApp
+
+	GetApp() CApp
+	GetTdx() CTdx
 }
 
 type Conf struct {
-	Tdx struct {
-		DataHost string `toml:"data_host"`
-		MonitorHost string `toml:"monitor_host"`
-	} `toml:"tdx"`
-
 	App CApp  `toml:"app"`
+	Tdx CTdx  `toml:"tdx"`
 }
 
 func (c *Conf) loadDefaults() {
@@ -68,6 +70,10 @@ func (c *Conf) Parse(path string) {
 	}
 }
 
-func (c *Conf) GetApp() *CApp {
-	return &c.App
+func (c *Conf) GetApp() CApp {
+	return c.App
+}
+
+func (c *Conf) GetTdx() CTdx {
+	return c.Tdx
 }

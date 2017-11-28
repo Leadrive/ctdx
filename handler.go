@@ -120,6 +120,7 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 		// 更新结束
 		client.stockBaseDF.SetNames("code", "name", "market", "unknown1", "unknown2", "unknown3", "price", "bonus1", "bonus2")
 		stockBasePath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
+		logger.Info("文件路径:%s", stockBasePath)
 		utils.WriteCSV(stockBasePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
 
 		client.dispatcher.DelHandler(uint32(respNode.EventId))

@@ -28,17 +28,19 @@ type BaseApp struct {
 	} `toml:"logger"`
 }
 
-type Conf struct {
-	App struct {
-		BaseApp
-		Urls CUrls    `toml:"urls"`
-		Files CFiles  `toml:"files"`
-	} `toml:"app"`
+type CApp struct {
+	BaseApp
+	Urls CUrls    `toml:"urls"`
+	Files CFiles  `toml:"files"`
+}
 
+type Conf struct {
 	Tdx struct {
 		DataHost string `toml:"data_host"`
 		MonitorHost string `toml:"monitor_host"`
 	} `toml:"tdx"`
+
+	App CApp  `toml:"app"`
 }
 
 

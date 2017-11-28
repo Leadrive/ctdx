@@ -116,6 +116,8 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 		client.stockBaseDF = client.stockBaseDF.RBind(stockBaseDF)
 	}
 
+	logger.Error("nrow:%d, total count:%d", client.stockBaseDF.Nrow(),
+		int(client.lastTrade.SZCount + client.lastTrade.SHCount))
 	if client.stockBaseDF.Nrow() >= int(client.lastTrade.SZCount + client.lastTrade.SHCount) {
 		// 更新结束
 		client.stockBaseDF.SetNames("code", "name", "market", "unknown1", "unknown2", "unknown3", "price", "bonus1", "bonus2")

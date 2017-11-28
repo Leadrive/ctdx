@@ -119,7 +119,7 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 	if client.stockBaseDF.Nrow() >= int(client.lastTrade.SZCount + client.lastTrade.SHCount) {
 		// 更新结束
 		client.stockBaseDF.SetNames("code", "name", "market", "unknown1", "unknown2", "unknown3", "price", "bonus1", "bonus2")
-		calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetApp().Files.StockList)
+		calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
 		utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
 
@@ -184,7 +184,7 @@ func (client *TdxClient) OnStockBonus(session *cnet.Session, packet interface{})
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
 
 	client.stockbonusDF.SetNames("code", "date", "market", "type", "money", "price", "count", "rate")
-	calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetApp().Files.StockBonus)
+	calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockBonus)
 	utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
 
@@ -314,7 +314,7 @@ func (client *TdxClient) OnStockHistory(session *cnet.Session, packet interface{
 
 		df.SetNames("date", "open", "low", "high", "close", "volume", "amount")
 
-		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetApp().Files.StockDay, fileName)
+		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockDay, fileName)
 		client.historySaveFile(df, stocksPath)
 		return
 	}
@@ -327,6 +327,6 @@ func (client *TdxClient) OnStockHistory(session *cnet.Session, packet interface{
 
 	df.SetNames("date", "time", "open", "low", "high", "close", "volume", "amount")
 
-	stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetApp().Files.StockMin, fileName)
+	stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockMin, fileName)
 	client.historySaveFile(df, stocksPath)
 }

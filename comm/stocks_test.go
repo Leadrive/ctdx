@@ -12,7 +12,7 @@ func TestStockCalendar(t *testing.T) {
 
 	Convey("检测默认股票日历实例的生成", t, func() {
 		// 默认加载股票日历数据
-		calendarPath := fmt.Sprintf("%s%s", configure.App.DataPath, configure.App.Files.Calendar)
+		calendarPath := fmt.Sprintf("%s%s", configure.App.DataPath, configure.Tdx.Files.Calendar)
 		calendar, err := DefaultStockCalendar(calendarPath)
 		So(err, ShouldEqual, nil)
 

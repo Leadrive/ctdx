@@ -217,7 +217,7 @@ func (client *TdxClient) UpdateDays(){
 		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
 
 		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
-			client.Configure.GetApp().Files.StockDay, fileName)
+			client.Configure.GetTdx().Files.StockDay, fileName)
 
 		colTypes := map[string]series.Type{
 			"date": series.Int, "open": series.Float, "low": series.Float, "high": series.Float,
@@ -296,7 +296,7 @@ func (client *TdxClient) UpdateMins(){
 		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
 
 		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
-			client.Configure.GetApp().Files.StockMin, fileName)
+			client.Configure.GetTdx().Files.StockMin, fileName)
 
 		colTypes := map[string]series.Type{
 			"date": series.Int, "time": series.String, "open": series.Float, "low": series.Float, "high": series.Float,

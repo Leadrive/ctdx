@@ -34,7 +34,7 @@ func UnknownPkgHandler(session *cnet.Session, packet interface{}) {
 /**
  * 接收市场行情的初始数据
  */
-func (client *HQClient) OnMarketInitInfo(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnMarketInitInfo(session *cnet.Session, packet interface{}){
 	var newBuffer bytes.Buffer
 	var notice pkg.MarketInitInfo
 
@@ -59,7 +59,7 @@ func (client *HQClient) OnMarketInitInfo(session *cnet.Session, packet interface
 /**
  * 接收市场股票数量信息
  */
-func (client *HQClient) OnStockCount(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockCount(session *cnet.Session, packet interface{}){
 	var newBuffer bytes.Buffer
 	var stockCount uint16
 	respNode := packet.(pkg.ResponseNode)
@@ -73,7 +73,7 @@ func (client *HQClient) OnStockCount(session *cnet.Session, packet interface{}){
 /**
  * 获取股票基础信息
  */
-func (client *HQClient) OnStockBase(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 	var newBuffer bytes.Buffer
 	var stockItem pkg.StockBaseItem
 	var stockList []StockBaseModel
@@ -110,7 +110,6 @@ func (client *HQClient) OnStockBase(session *cnet.Session, packet interface{}){
 		return
 	}
 
-
 	if 0 >= client.stockBaseDF.Nrow() {
 		client.stockBaseDF = stockBaseDF
 	} else {
@@ -131,7 +130,7 @@ func (client *HQClient) OnStockBase(session *cnet.Session, packet interface{}){
 /**
  * 获取股票权息数据
  */
-func (client *HQClient) OnStockBonus(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockBonus(session *cnet.Session, packet interface{}){
 	var newBuffer bytes.Buffer
 	var bonusItem pkg.StockBonusItem
 	var bonusList []StockBonusModel
@@ -193,7 +192,7 @@ func (client *HQClient) OnStockBonus(session *cnet.Session, packet interface{}){
 	return
 }
 
-func (client *HQClient) onStockDayHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
+func (client *TdxClient) onStockDayHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
 	var newBuffer bytes.Buffer
 	var stockDayItem pkg.StockDayItem
 	var stockDaysList []StockDayModel
@@ -223,7 +222,7 @@ func (client *HQClient) onStockDayHistory(stockLength int, littleEndianBuffer *g
 }
 
 
-func (client *HQClient) onStockMinsHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
+func (client *TdxClient) onStockMinsHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
 	var newBuffer bytes.Buffer
 	var stockMinsItem pkg.StockMinsItem
 	var stockMinsList []StockMinsModel
@@ -262,7 +261,7 @@ func (client *HQClient) onStockMinsHistory(stockLength int, littleEndianBuffer *
 /**
  * 保存行情数据
  */
-func (client *HQClient) historySaveFile(df dataframe.DataFrame, stocksPath string) {
+func (client *TdxClient) historySaveFile(df dataframe.DataFrame, stocksPath string) {
 	isExist, _ := utils.FileExists(stocksPath)
 	if isExist {
 		utils.WriteCSV(stocksPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &df)
@@ -274,7 +273,7 @@ func (client *HQClient) historySaveFile(df dataframe.DataFrame, stocksPath strin
 /**
  * 接收行情数据
  */
-func (client *HQClient) OnStockHistory(session *cnet.Session, packet interface{}) {
+func (client *TdxClient) OnStockHistory(session *cnet.Session, packet interface{}) {
 	defer func() {
 		if p := recover(); p != nil {
 			fmt.Printf("panic recover! p: %v", p)

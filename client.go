@@ -20,7 +20,7 @@ const (
 	stockBonusFinishedIdx = 0x1100   // 权息数据获取结束的标识符
 )
 
-type HQClient struct {
+type TdxClient struct {
 	session     *cnet.Session
 	dispatcher  *CTdxDispatcher
 
@@ -36,19 +36,19 @@ type HQClient struct {
 	stockbonusDF   dataframe.DataFrame
 }
 
-func NewDefaultTdxClient(configure *comm.Conf) *HQClient {
-	return &HQClient{MainVersion:7.29, CoreVersion:5.895, Configure:configure, Finished:make(chan interface{})}
+func NewDefaultTdxClient(configure *comm.Conf) *TdxClient {
+	return &TdxClient{MainVersion:7.29, CoreVersion:5.895, Configure:configure, Finished:make(chan interface{})}
 }
 
 /**
  * 关闭连接
  */
-func (client *HQClient) Close(){ client.session.Close() }
+func (client *TdxClient) Close() { client.session.Close() }
 
 /**
  * 与服务器建立TCP连接
  */
-func (client *HQClient) Conn(){
+func (client *TdxClient) Conn(){
 	var err error
 	swProtocol := pkg.NewDefaultProtocol()
 	client.dispatcher = NewCTdxDispatcher()
@@ -93,7 +93,7 @@ func (client *HQClient) Conn(){
 /**
  * 更新股票基础信息
  */
-func (client *HQClient) UpdateStockBase(){
+func (client *TdxClient) UpdateStockBase(){
 	logger.Info("开始更新深交所股债基列表信息...")
 	stockBase := pkg.GenerateMarketStockBase(0, 0)
 	client.dispatcher.AddHandler(uint32(stockBase.EventId), client.OnStockBase)
@@ -112,7 +112,7 @@ func (client *HQClient) UpdateStockBase(){
 
 }
 
-func  (client *HQClient)updateBonus(df *dataframe.DataFrame){
+func  (client *TdxClient)updateBonus(df *dataframe.DataFrame){
 	// 筛选掉已经处理过的数据
 	var row map[string]interface{}
 	var stockBonus []pkg.StockBonus
@@ -158,7 +158,7 @@ CONTINUE:
 /**
  * 更新股票高送转数据
  */
-func (client *HQClient) UpdateStockBonus(){
+func (client *TdxClient) UpdateStockBonus(){
 	// 股指基
 	df := comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
 	if nil != df.Err {
@@ -178,7 +178,7 @@ func (client *HQClient) UpdateStockBonus(){
 /**
  * 更新股票日线数据
  */
-func (client *HQClient) UpdateDays(){
+func (client *TdxClient) UpdateDays(){
 	defer func() {
 		if p := recover(); p != nil {
 			fmt.Printf("panic recover! p: %v", p)
@@ -255,7 +255,7 @@ func (client *HQClient) UpdateDays(){
 /**
  * 更新股票五分钟线数据
  */
-func (client *HQClient) UpdateMins(){
+func (client *TdxClient) UpdateMins(){
 	defer func() {
 		if p := recover(); p != nil {
 			fmt.Printf("panic recover! p: %v", p)

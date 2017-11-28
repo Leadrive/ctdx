@@ -53,7 +53,7 @@ func (client *TdxClient) Conn(){
 	swProtocol := pkg.NewDefaultProtocol()
 	client.dispatcher = NewCTdxDispatcher()
 
-	client.session, err = cnet.Dial("tcp", client.Configure.GetTdx().DataHost,
+	client.session, err = cnet.Dial("tcp", client.Configure.GetTdx().Server.DataHost,
 		swProtocol, client.dispatcher.HandleProc, 0)
 	if err != nil {
 		logger.Error("创建服务器链接失败,err: %v", err)

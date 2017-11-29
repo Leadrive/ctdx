@@ -264,7 +264,7 @@ func (client *TdxClient) onStockMinsHistory(stockLength int, littleEndianBuffer 
  */
 func (client *TdxClient) historySaveFile(df dataframe.DataFrame, stocksPath string) {
 	isExist, _ := utils.FileExists(stocksPath)
-	if isExist {
+	if ! isExist {
 		utils.WriteCSV(stocksPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &df)
 	} else {
 		utils.WriteCSV(stocksPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, &df, dataframe.WriteHeader(false))

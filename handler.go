@@ -16,7 +16,7 @@ import (
 	"github.com/datochan/gcom/cnet"
 )
 
-func UnknownPkgHandler(session *cnet.Session, packet interface{}) {
+func UnknownPkgHandler(session cnet.ISession, packet interface{}) {
 	respNode := packet.(pkg.ResponseNode)
 	switch respNode.EventId {
 	case 0x0B: logger.Info("模拟设备已注册成功！")
@@ -34,7 +34,7 @@ func UnknownPkgHandler(session *cnet.Session, packet interface{}) {
 /**
  * 接收市场行情的初始数据
  */
-func (client *TdxClient) OnMarketInitInfo(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnMarketInitInfo(session cnet.ISession, packet interface{}){
 	var newBuffer bytes.Buffer
 	var notice pkg.MarketInitInfo
 
@@ -59,7 +59,7 @@ func (client *TdxClient) OnMarketInitInfo(session *cnet.Session, packet interfac
 /**
  * 接收市场股票数量信息
  */
-func (client *TdxClient) OnStockCount(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockCount(session cnet.ISession, packet interface{}){
 	var newBuffer bytes.Buffer
 	var stockCount uint16
 	respNode := packet.(pkg.ResponseNode)
@@ -73,7 +73,7 @@ func (client *TdxClient) OnStockCount(session *cnet.Session, packet interface{})
 /**
  * 获取股票基础信息
  */
-func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockBase(session cnet.ISession, packet interface{}){
 	var newBuffer bytes.Buffer
 	var stockItem pkg.StockBaseItem
 	var stockList []StockBaseModel
@@ -134,7 +134,7 @@ func (client *TdxClient) OnStockBase(session *cnet.Session, packet interface{}){
 /**
  * 获取股票权息数据
  */
-func (client *TdxClient) OnStockBonus(session *cnet.Session, packet interface{}){
+func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{}){
 	var newBuffer bytes.Buffer
 	var bonusItem pkg.StockBonusItem
 	var bonusList []StockBonusModel
@@ -277,7 +277,7 @@ func (client *TdxClient) historySaveFile(df dataframe.DataFrame, stocksPath stri
 /**
  * 接收行情数据
  */
-func (client *TdxClient) OnStockHistory(session *cnet.Session, packet interface{}) {
+func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{}) {
 	defer func() {
 		if p := recover(); p != nil {
 			fmt.Printf("panic recover! p: %v", p)

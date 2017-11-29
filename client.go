@@ -21,7 +21,7 @@ const (
 )
 
 type TdxClient struct {
-	session     *cnet.Session
+	session     *cnet.SyncSession
 	dispatcher  *CTdxDispatcher
 
 	bonusFinishedChan   chan int   // 用于更新权息数据时同步已处理的数据
@@ -53,7 +53,7 @@ func (client *TdxClient) Conn(){
 	swProtocol := pkg.NewDefaultProtocol()
 	client.dispatcher = NewCTdxDispatcher()
 
-	client.session, err = cnet.Dial("tcp", client.Configure.GetTdx().Server.DataHost,
+	client.session, err = cnet.NewSyncSession("tcp", client.Configure.GetTdx().Server.DataHost,
 		swProtocol, client.dispatcher.HandleProc, 0)
 	if err != nil {
 		logger.Error("创建服务器链接失败,err: %v", err)

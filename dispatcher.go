@@ -23,7 +23,7 @@ func NewCTdxDispatcher() *CTdxDispatcher {
 /**
  * 事件处理过程
  */
-func (p *CTdxDispatcher) HandleProc(session *cnet.Session, packet interface{}) {
+func (p *CTdxDispatcher) HandleProc(session cnet.ISession, packet interface{}) {
 	p.rwlock.RLock()
 	defer p.rwlock.RUnlock()
 

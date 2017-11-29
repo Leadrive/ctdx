@@ -21,7 +21,7 @@ func NewDefaultProtocol() *TdxPacketProtocolImpl {
 	return &TdxPacketProtocolImpl{gbytes.NewLittleEndianStream(make([]byte, 1024*1024*5, 1024*1024*5))}
 }
 
-func (tdx *TdxPacketProtocolImpl) recvToBuffer(s *cnet.Session) (int, error){
+func (tdx *TdxPacketProtocolImpl) recvToBuffer(s cnet.ISession) (int, error){
 	tmpBuffer := make([]byte, 1024*5, 1024*5)
 
 	recvLen, err := s.RawConn().Read(tmpBuffer[:])
@@ -37,7 +37,7 @@ func (tdx *TdxPacketProtocolImpl) recvToBuffer(s *cnet.Session) (int, error){
 /**
  * 直接返回所有封包内容，不做任何处理
  */
-func (tdx *TdxPacketProtocolImpl) ReadPacket(s *cnet.Session) (interface{}, error) {
+func (tdx *TdxPacketProtocolImpl) ReadPacket(s cnet.ISession) (interface{}, error) {
 	var newBuffer bytes.Buffer
 	var header ResponseHeader
 

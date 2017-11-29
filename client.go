@@ -109,7 +109,6 @@ func (client *TdxClient) UpdateStockBase(){
 		stockBase = pkg.GenerateMarketStockBase(1, uint16(idx))
 		client.session.Send(stockBase)
 	}
-
 }
 
 func  (client *TdxClient)updateBonus(df *dataframe.DataFrame){

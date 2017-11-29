@@ -226,7 +226,7 @@ func (client *TdxClient) UpdateDays(){
 
 		if nil == stockItemDF.Err {
 			// 获取最后一条记录的日期
-			idx := utils.FindInStringSlice("date", client.stockBaseDF.Names())
+			idx := utils.FindInStringSlice("date", stockItemDF.Names())
 			start, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
 			if nil != err {
 				logger.Error("UpdateDays Err:%v", err)

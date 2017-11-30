@@ -309,7 +309,7 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 	if respNode.CmdId == pkg.GenerateStockDayItem(0, "", 0, 0, 0).CmdId {
 		df := client.onStockDayHistory(int(stockLength), littleEndianBuffer)
 		if nil != df.Err {
-			//logger.Info("\t行情 %d%s 的数据有错, Err: %v", market, strCode, df.Err)
+			logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 			return
 		}
 
@@ -322,7 +322,7 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 
 	df := client.onStockMinsHistory(int(stockLength), littleEndianBuffer)
 	if nil != df.Err {
-		logger.Info("\t行情 %d%s 的数据有错, Err: %v", market, strCode, df.Err)
+		logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 		return
 	}
 

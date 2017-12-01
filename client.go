@@ -60,7 +60,7 @@ func (client *TdxClient) Conn(){
 	client.session, err = cnet.NewSyncSession("tcp", client.Configure.GetTdx().Server.DataHost,
 		swProtocol, client.dispatcher.HandleProc, 0)
 	if err != nil {
-		logger.Error("创建服务器链接失败,err: %v", err)
+		logger.Error(fmt.Sprintf("创建服务器链接失败,err: %v", err))
 		os.Exit(0)
 		return
 	}
@@ -165,7 +165,7 @@ func (client *TdxClient) UpdateStockBonus(){
 	// 股指基
 	df := comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
 	if nil != df.Err {
-		logger.Error("读取股票基础数据失败! err:%v", df)
+		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", df))
 		return
 	}
 
@@ -194,12 +194,12 @@ func (client *TdxClient) UpdateDays(){
 	}()
 
 	calendar, err := comm.DefaultStockCalendar("")
-	if nil != err { logger.Error("UpdateDays Err:%v", err); return }
+	if nil != err { logger.Error(fmt.Sprintf("UpdateDays Err:%v", err)); return }
 
 	// 股指基
 	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
 	if nil != client.stockBaseDF.Err {
-		logger.Error("读取股票基础数据失败! err:%v", client.stockBaseDF)
+		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", client.stockBaseDF))
 		return
 	}
 
@@ -272,12 +272,12 @@ func (client *TdxClient) UpdateMins(){
 	}()
 
 	calendar, err := comm.DefaultStockCalendar("")
-	if nil != err { logger.Error("UpdateMins Err:%v", err); return }
+	if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
 
 	// 股指基
 	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
 	if nil != client.stockBaseDF.Err {
-		logger.Error("读取股票基础数据失败! err:%v", client.stockBaseDF)
+		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", client.stockBaseDF))
 		return
 	}
 

@@ -8,12 +8,15 @@ import (
 	"github.com/kniren/gota/series"
 	"github.com/kniren/gota/dataframe"
 
+	"github.com/datochan/gcom/cnet"
+	"github.com/datochan/gcom/crypto"
 	"github.com/datochan/gcom/utils"
 	"github.com/datochan/gcom/logger"
-	"github.com/datochan/gcom/cnet"
 
 	"github.com/datochan/ctdx/comm"
 	pkg "github.com/datochan/ctdx/packet"
+	"strings"
+	"io/ioutil"
 )
 
 const (
@@ -229,7 +232,7 @@ func (client *TdxClient) UpdateDays(){
 			idx := utils.FindInStringSlice("date", stockItemDF.Names())
 			start, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
 			if nil != err {
-				logger.Error("UpdateDays Err:%v", err)
+				logger.Error(fmt.Sprintf("UpdateDays Err:%v", err))
 				return
 			}
 		}
@@ -307,7 +310,7 @@ func (client *TdxClient) UpdateMins(){
 			// 获取最后一条记录的日期
 			idx := utils.FindInStringSlice("date", stockItemDF.Names())
 			start, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
-			if nil != err { logger.Error("UpdateMins Err:%v", err); return }
+			if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
 		}
 
 		tmpStart, _ := strconv.Atoi(start)
@@ -324,4 +327,44 @@ func (client *TdxClient) UpdateMins(){
 			tmpStart = tmpEnd+1
 		}
 	}
+}
+
+/**
+ * 更新财报信息
+ */
+func (client *TdxClient) UpdateReport(){
+	var noneTotal int
+
+	reportUrl := fmt.Sprintf("%s/%s", client.Configure.GetTdx().Urls.StockFin, client.Configure.GetTdx().Urls.FinListFile)
+	content := utils.ConvertTo(string(cnet.HttpRequest(reportUrl, "", "", "", "")), "gbk", "utf8")
+	cwList := strings.Split(content, "\n")
+
+	for idx:=len(cwList); idx>=0; idx-- {
+		item := cwList[idx-1]
+		// 如果一行的数据长度过短则是无效数据
+		if 5 >= len(item) { noneTotal += 1; continue }
+
+		itemList := strings.Split(item, ",")
+		fileName := itemList[0]
+		fileHash := itemList[1]
+		filePath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
+			client.Configure.GetTdx().Files.StockReport, fileName)
+
+		hashResult, _ := crypto.EncryptMd5Sum(filePath)
+
+		if 0 == strings.Compare(fileHash, hashResult) {
+			logger.Info(fmt.Sprintf("财报文件 %s 没有变化, 无需更新 ... ", fileName))
+			continue
+		}
+
+		logger.Info(fmt.Sprintf("更新财报文件 %s ... ", fileName))
+		err := os.Remove(filePath)
+		if nil != err { logger.Error(fmt.Sprintf("删除旧财报文件 `%s` 失败, Err: %v", fileName, err)); return }
+
+		reportUrl = fmt.Sprintf("%s/%s", client.Configure.GetTdx().Urls.StockFin, fileName)
+		content := cnet.HttpRequest(reportUrl, "", "", "", "")
+		err = ioutil.WriteFile(filePath, content, 0666)
+		if nil != err { logger.Error(fmt.Sprintf("更新财报文件 `%s` 失败, Err: %v", fileName, err)); return }
+	}
+
 }

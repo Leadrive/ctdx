@@ -359,7 +359,7 @@ func (client *TdxClient) UpdateReport(){
 
 		logger.Info(fmt.Sprintf("更新财报文件 %s ... ", fileName))
 		err := os.Remove(filePath)
-		if nil != err { logger.Error(fmt.Sprintf("删除旧财报文件 `%s` 失败, Err: %v", fileName, err)); return }
+		if nil != err && os.ErrNotExist != err { logger.Error(fmt.Sprintf("删除旧财报文件 `%s` 失败, Err: %v", fileName, err)); return }
 
 		reportUrl = fmt.Sprintf("%s/%s", client.Configure.GetTdx().Urls.StockFin, fileName)
 		content := cnet.HttpRequest(reportUrl, "", "", "", "")

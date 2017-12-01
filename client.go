@@ -17,7 +17,6 @@ import (
 	pkg "github.com/datochan/ctdx/packet"
 	"strings"
 	"io/ioutil"
-	"syscall"
 )
 
 const (

@@ -339,7 +339,7 @@ func (client *TdxClient) UpdateReport(){
 	content := utils.ConvertTo(string(cnet.HttpRequest(reportUrl, "", "", "", "")), "gbk", "utf8")
 	cwList := strings.Split(content, "\n")
 
-	for idx:=len(cwList); idx>=0; idx-- {
+	for idx:=len(cwList); idx>0; idx-- {
 		item := cwList[idx-1]
 		// 如果一行的数据长度过短则是无效数据
 		if 5 >= len(item) { noneTotal += 1; continue }

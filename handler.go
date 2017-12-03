@@ -167,7 +167,7 @@ func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{})
 	// 更新结束
 	bonusDF := dataframe.LoadStructs(bonusList)
 	if nil != bonusDF.Err {
-		logger.Error("加载权息数据时发生错误:%v", bonusDF.Err)
+		logger.Error(fmt.Sprintf("加载权息数据时发生错误:%v", bonusDF.Err))
 		return
 	}
 
@@ -309,7 +309,7 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 	if respNode.CmdId == pkg.GenerateStockDayItem(0, "", 0, 0, 0).CmdId {
 		df := client.onStockDayHistory(int(stockLength), littleEndianBuffer)
 		if nil != df.Err {
-			logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
+			//logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 			return
 		}
 
@@ -322,7 +322,7 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 
 	df := client.onStockMinsHistory(int(stockLength), littleEndianBuffer)
 	if nil != df.Err {
-		logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
+		//logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 		return
 	}
 

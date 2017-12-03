@@ -46,7 +46,11 @@ func NewDefaultTdxClient(configure comm.IConfigure) *TdxClient {
 /**
  * 关闭连接
  */
-func (client *TdxClient) Close() { client.session.Close() }
+func (client *TdxClient) Close() {
+	if nil != client.session {
+		client.session.Close()
+	}
+}
 
 /**
  * 与服务器建立TCP连接

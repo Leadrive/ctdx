@@ -1,5 +1,6 @@
 package ctdx
 
+// 市场最后交易信息
 type LastTradeModel struct {
 	ServerName string
 	Domain     string
@@ -58,13 +59,3 @@ type StockMinsModel struct {
 	Volume     int
     Amount     float64
 }
-
-// 历史ST股列表
-type StockSTModel struct {
-	Date       int
-	Code       string
-	Name       string
-	Flag       string
-}
-
-

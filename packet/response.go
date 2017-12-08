@@ -104,3 +104,21 @@ type StockMinsItem struct {
     Unknown1   uint32
 }
 
+/**
+ * 财报数据
+ */
+type ReportHeader struct {  // 3h1H3L
+    Unknown1 [3]uint16
+    MaxCount uint16         // 财报最大记录数
+    Unknown2 [3]uint32
+}
+
+type ReportItem struct {    //6s1c1L
+    Code       [6]byte
+    Unknown1   byte
+    Foa        uint32
+}
+
+type ReportData struct {
+    Prices    [264]float32
+}

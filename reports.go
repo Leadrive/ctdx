@@ -65,9 +65,9 @@ func reportAnalyse(reportRawData []byte, code string, date int) dataframe.DataFr
 				for idx:=0; idx<len(reportData.Prices); idx++ {
 					priceItem := reportData.Prices[idx]
 					if priceItem < -10000000000000.00 {
-						reportMaps[strconv.Itoa(idx+1)] = float64(0.00)
+						reportMaps[strconv.Itoa(idx+1)] = "0.0"
 					} else {
-						reportMaps[strconv.Itoa(idx+1)] = float64(priceItem)
+						reportMaps[strconv.Itoa(idx+1)] = fmt.Sprintf("%.4f", float64(priceItem))
 					}
 				}
 				reportList = append(reportList, reportMaps)
@@ -88,9 +88,9 @@ func reportAnalyse(reportRawData []byte, code string, date int) dataframe.DataFr
 			for idx:=0; idx<len(reportData.Prices); idx++ {
 				priceItem := reportData.Prices[idx]
 				if priceItem < -10000000000000.00 {
-					reportMaps[strconv.Itoa(idx+1)] = 0
+					reportMaps[strconv.Itoa(idx+1)] = "0.0"
 				} else {
-					reportMaps[strconv.Itoa(idx+1)] = float64(priceItem)
+					reportMaps[strconv.Itoa(idx+1)] = fmt.Sprintf("%.4f", float64(priceItem))
 				}
 			}
 			reportList = append(reportList, reportMaps)
@@ -289,6 +289,7 @@ func ReportList(conf comm.IConfigure, code, date string) dataframe.DataFrame{
 			// 不存在指定的日期
 			return dataframe.DataFrame{Err:fmt.Errorf("指定的日期不存在, Err=%v", err)}
 		}
+
 		nDateItem, _ := strconv.Atoi(date)
 		return reportList(conf, code, nDateItem)
 	}

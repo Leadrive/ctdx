@@ -304,7 +304,7 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 
 	//logger.Info("\t已收到 %d%s 的盘后行情数据...", market, strCode)
 
-	fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
+	fileName := fmt.Sprintf("%d%s.csv", market, strCode)
 
 	if respNode.CmdId == pkg.GenerateStockDayItem(0, "", 0, 0, 0).CmdId {
 		df := client.onStockDayHistory(strCode, int(stockLength), littleEndianBuffer)

@@ -220,7 +220,7 @@ func (client *TdxClient) UpdateDays(){
 		copy(code[:], []byte(strCode))
 
 		start := "19901219"
-		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
+		fileName := fmt.Sprintf("%d%s.csv", market, strCode)
 
 		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
 			client.Configure.GetTdx().Files.StockDay, fileName)
@@ -299,7 +299,7 @@ func (client *TdxClient) UpdateMins(){
 
 		// 默认由今天往前100天
 		start := utils.AddDays(utils.Today(), -100)
-		fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
+		fileName := fmt.Sprintf("%d%s.csv", market, strCode)
 
 		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
 			client.Configure.GetTdx().Files.StockMin, fileName)

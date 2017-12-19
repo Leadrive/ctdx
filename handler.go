@@ -193,7 +193,7 @@ func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{})
 	return
 }
 
-func (client *TdxClient) onStockDayHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
+func (client *TdxClient) onStockDayHistory(code string, stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
 	var newBuffer bytes.Buffer
 	var stockDayItem pkg.StockDayItem
 	var stockDaysList []StockDayModel
@@ -207,7 +207,7 @@ func (client *TdxClient) onStockDayHistory(stockLength int, littleEndianBuffer *
 
 		binary.Read(&newBuffer, binary.LittleEndian, &stockDayItem)
 
-		stockDayModel := StockDayModel{int(stockDayItem.Date),
+		stockDayModel := StockDayModel{code, int(stockDayItem.Date),
 			float64(stockDayItem.Open)/100.0,float64(stockDayItem.Low)/100.0,
 			float64(stockDayItem.High)/100.0,float64(stockDayItem.Close)/100.0,
 			int(stockDayItem.Volume),float64(stockDayItem.Amount)/100.0}
@@ -223,7 +223,7 @@ func (client *TdxClient) onStockDayHistory(stockLength int, littleEndianBuffer *
 }
 
 
-func (client *TdxClient) onStockMinsHistory(stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
+func (client *TdxClient) onStockMinsHistory(code string, stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
 	var newBuffer bytes.Buffer
 	var stockMinsItem pkg.StockMinsItem
 	var stockMinsList []StockMinsModel
@@ -244,7 +244,7 @@ func (client *TdxClient) onStockMinsHistory(stockLength int, littleEndianBuffer 
 		nDate := nYear*10000 + nMonth*100 + nDay
 		strTime := fmt.Sprintf("%02d:%02d:00", int(stockMinsItem.Time)/60, int(stockMinsItem.Time)%60)
 
-		stockMinsModel := StockMinsModel{nDate, strTime,
+		stockMinsModel := StockMinsModel{code, nDate, strTime,
 			float64(stockMinsItem.Open)/100.0,float64(stockMinsItem.Low)/100.0,
 			float64(stockMinsItem.High)/100.0,float64(stockMinsItem.Close)/100.0,
 			int(stockMinsItem.Volume),float64(stockMinsItem.Amount)/100.0}
@@ -307,26 +307,26 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 	fileName := fmt.Sprintf("%d%s.csv.zip", market, strCode)
 
 	if respNode.CmdId == pkg.GenerateStockDayItem(0, "", 0, 0, 0).CmdId {
-		df := client.onStockDayHistory(int(stockLength), littleEndianBuffer)
+		df := client.onStockDayHistory(strCode, int(stockLength), littleEndianBuffer)
 		if nil != df.Err {
 			//logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 			return
 		}
 
-		df.SetNames("date", "open", "low", "high", "close", "volume", "amount")
+		df.SetNames("code", "date", "open", "low", "high", "close", "volume", "amount")
 
 		stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockDay, fileName)
 		client.historySaveFile(df, stocksPath)
 		return
 	}
 
-	df := client.onStockMinsHistory(int(stockLength), littleEndianBuffer)
+	df := client.onStockMinsHistory(strCode, int(stockLength), littleEndianBuffer)
 	if nil != df.Err {
 		//logger.Info("\t接收行情 %d%s 的数据出错, Err: %v", market, strCode, df.Err)
 		return
 	}
 
-	df.SetNames("date", "time", "open", "low", "high", "close", "volume", "amount")
+	df.SetNames("code", "date", "time", "open", "low", "high", "close", "volume", "amount")
 
 	stocksPath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockMin, fileName)
 	client.historySaveFile(df, stocksPath)

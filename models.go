@@ -39,6 +39,7 @@ type StockBonusModel struct {
 
 // 日线数据的文件结构
 type StockDayModel struct {
+	Market     int
 	Code       string
     Date	   int
 	Open       float64
@@ -51,6 +52,7 @@ type StockDayModel struct {
 
 // 五分钟线数据的文件结构
 type StockMinsModel struct {
+	Market     int
 	Code       string
     Date	   int
     Time	   string

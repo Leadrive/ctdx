@@ -305,16 +305,20 @@ func (client *TdxClient) UpdateMins(){
 			client.Configure.GetTdx().Files.StockMin, fileName)
 
 		colTypes := map[string]series.Type{
-			"date": series.Int, "time": series.String, "open": series.Float, "low": series.Float, "high": series.Float,
-			"close": series.Float, "volume": series.Int, "amount": series.Float}
+			"market": series.Int, "code": series.String, "date": series.Int, "time": series.String,
+			"open": series.Float, "low": series.Float, "high": series.Float, "close": series.Float,
+			"volume": series.Int, "amount": series.Float}
 
 		stockItemDF := utils.ReadCSV(stocksPath, dataframe.WithTypes(colTypes))
 
 		if nil == stockItemDF.Err {
 			// 获取最后一条记录的日期
+			nextDays := start
 			idx := utils.FindInStringSlice("date", stockItemDF.Names())
-			start, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
+			nextDays, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
 			if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
+
+			if strings.Compare(nextDays, start) > 0  { start = nextDays }
 		}
 
 		tmpStart, _ := strconv.Atoi(start)

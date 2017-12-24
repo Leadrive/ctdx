@@ -226,8 +226,8 @@ func (client *TdxClient) UpdateDays(){
 			client.Configure.GetTdx().Files.StockDay, fileName)
 
 		colTypes := map[string]series.Type{
-			"date": series.Int, "open": series.Float, "low": series.Float, "high": series.Float,
-			"close": series.Float, "volume": series.Int, "amount": series.Float}
+			"market": series.Int, "code": series.String, "date": series.Int, "open": series.Float, "low": series.Float,
+			"high": series.Float, "close": series.Float, "volume": series.Int, "amount": series.Float}
 
 		stockItemDF := utils.ReadCSV(stocksPath, dataframe.WithTypes(colTypes))
 
@@ -332,7 +332,8 @@ func (client *TdxClient) UpdateMins(){
 			reqNode := pkg.GenerateStockMinsItem(uint16(market), strCode, uint32(tmpStart), uint32(tmpEnd), uint16(idx+1))
 			client.session.Send(reqNode)
 
-			tmpStart = tmpEnd+1
+			nextEnd, _ := calendar.NextDay(strconv.Itoa(tmpEnd))
+			tmpStart, _ = strconv.Atoi(nextEnd)
 		}
 	}
 }

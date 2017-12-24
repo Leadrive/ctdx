@@ -245,9 +245,9 @@ func (client *TdxClient) onStockMinsHistory(market int, code string, stockLength
 		strTime := fmt.Sprintf("%02d:%02d:00", int(stockMinsItem.Time)/60, int(stockMinsItem.Time)%60)
 
 		stockMinsModel := StockMinsModel{market, code, nDate, strTime,
-			float64(stockMinsItem.Open)/100.0,float64(stockMinsItem.Low)/100.0,
-			float64(stockMinsItem.High)/100.0,float64(stockMinsItem.Close)/100.0,
-			int(stockMinsItem.Volume),float64(stockMinsItem.Amount)/100.0}
+			float64(stockMinsItem.Open),float64(stockMinsItem.Low),
+			float64(stockMinsItem.High),float64(stockMinsItem.Close),
+			int(stockMinsItem.Volume)/100,float64(stockMinsItem.Amount)}
 
 		stockMinsList = append(stockMinsList, stockMinsModel)
 	}

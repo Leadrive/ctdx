@@ -14,6 +14,9 @@ import (
 
 	pkg "github.com/datochan/ctdx/packet"
 	"github.com/datochan/gcom/cnet"
+	"github.com/kniren/gota/series"
+	"strings"
+	"strconv"
 )
 
 func UnknownPkgHandler(session cnet.ISession, packet interface{}) {
@@ -70,6 +73,70 @@ func (client *TdxClient) OnStockCount(session cnet.ISession, packet interface{})
 	if respNode.CmdId == 0x6C { client.lastTrade.SHCount = uint32(stockCount) } // 上海股票数量
 }
 
+
+func (client *TdxClient) onSTStocks(){
+	isAppend := false
+	var stList [][]string
+
+	// 市场最后交易日期
+	nowDate := int(client.lastTrade.SZDate)
+
+	stockSTPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockSt)
+
+	colTypes := map[string]series.Type{ "date": series.Int, "code": series.String, "name": series.String,
+		"flag": series.String}
+
+	stockItemDF := utils.ReadCSV(stockSTPath, dataframe.WithTypes(colTypes))
+
+	start := nowDate
+	if nil == stockItemDF.Err {
+		// 获取最后一条记录的日期
+		isAppend = true
+		idx := utils.FindInStringSlice("date", stockItemDF.Names())
+		start, _ = stockItemDF.Elem(stockItemDF.Nrow()-1, idx).Int()
+	}
+
+	if start >= nowDate {
+		logger.Error("ST信息已是最新,无需继续更新")
+		return
+	}
+
+	targetDate := strconv.Itoa(nowDate)
+	for _, item := range client.stockBaseDF.Maps() {
+		if strings.HasPrefix(item["name"].(string), "ST") {
+			// 连续两年亏损
+			stList = append(stList, []string{targetDate, item["code"].(string), item["name"].(string), "ST"})
+
+		} else if strings.HasPrefix(item["name"].(string), "SST") {
+			// 连续两年亏损 + 未完成股改
+			stList = append(stList, []string{targetDate, item["code"].(string), item["name"].(string), "SST"})
+
+		} else if strings.HasPrefix(item["name"].(string), "*ST") {
+			// 连续三年亏损+退市预警
+			stList = append(stList, []string{targetDate, item["code"].(string), item["name"].(string), "*ST"})
+
+		} else if strings.HasPrefix(item["name"].(string), "S*ST") {
+			// 连续三年亏损，退市预警+还没有完成股改
+			stList = append(stList, []string{targetDate, item["code"].(string), item["name"].(string), "S*ST"})
+
+		} else if strings.HasPrefix(item["name"].(string), "S") {
+			// 还没有完成股改
+			stList = append(stList, []string{targetDate, item["code"].(string), item["name"].(string), "S"})
+		}
+	}
+
+	stListDF := dataframe.LoadRecords(stList, dataframe.DetectTypes(false), dataframe.DefaultType(series.String))
+	stListDF.SetNames("date", "code", "name", "flag")
+
+	sortedDf := stListDF.Arrange(dataframe.Sort("code"))
+
+	if !isAppend {
+		utils.WriteCSV(stockSTPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &sortedDf)
+	} else {
+		utils.WriteCSV(stockSTPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, &sortedDf, dataframe.WriteHeader(false))
+	}
+}
+
 /**
  * 获取股票基础信息
  */
@@ -96,9 +163,9 @@ func (client *TdxClient) OnStockBase(session cnet.ISession, packet interface{}){
 		binary.Read(&newBuffer, binary.LittleEndian, &stockItem)
 
 		stockModel := StockBaseModel{gbytes.BytesToString(stockItem.Code[:]),
-		utils.ConvertTo(gbytes.BytesToString(stockItem.Name[:]), "gbk", "utf8"), market,
-		int(stockItem.Unknown1), int(stockItem.Unknown2), int(stockItem.Unknown3),
-		float64(stockItem.Price), int(stockItem.Bonus1), int(stockItem.Bonus2)}
+			utils.ConvertTo(gbytes.BytesToString(stockItem.Name[:]), "gbk", "utf8"), market,
+			int(stockItem.Unknown1), int(stockItem.Unknown2), int(stockItem.Unknown3),
+			float64(stockItem.Price), int(stockItem.Bonus1), int(stockItem.Bonus2)}
 
 		stockList = append(stockList, stockModel)
 	}
@@ -124,6 +191,7 @@ func (client *TdxClient) OnStockBase(session cnet.ISession, packet interface{}){
 
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
 
+		client.onSTStocks()
 		client.Finished <- nil
 	}
 }

@@ -21,6 +21,7 @@ type CTdx struct {
 	} `toml:"urls"`
 	Files struct {
 		Calendar string `toml:"calendar"`
+		StockSt string `toml:"stock_st"`
 		StockList string `toml:"stock_list"`
 		StockBonus string `toml:"stock_bonus"`
 		StockDay string `toml:"stock_day"`

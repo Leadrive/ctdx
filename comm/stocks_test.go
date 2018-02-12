@@ -32,6 +32,7 @@ func TestStockCalendar(t *testing.T) {
 			calendar.Each(func (dateItem CalendarModel) error{
 				if dateItem.Date == 19981231 {
 					So(dateItem.YearEnd, ShouldBeTrue)
+					return fmt.Errorf("正常停止")
 				}
 				return nil
 			})

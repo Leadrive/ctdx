@@ -13,6 +13,22 @@ import (
 // 单例避免重复IO操作
 var gCalendar *StockCalendar
 
+
+type CalendarModel struct {
+	Date 		int
+	Open		bool
+	prevDate    int
+	WeekEnd		bool
+	MonthEnd	bool
+	QuarterEnd	bool
+	YearEnd		bool
+}
+
+func NewCalendarModel(date int, open bool, prevDate int, weekEnd, monthEnd, quarterEnd, yearEnd bool) CalendarModel{
+	return CalendarModel{date, open, prevDate, weekEnd,
+		monthEnd, quarterEnd, yearEnd}
+}
+
 type StockCalendar struct {
 	calendarDF		dataframe.DataFrame
 }
@@ -27,9 +43,30 @@ func DefaultStockCalendar(calendarPath string) (*StockCalendar, error){
 	}
 
 	gCalendar = new(StockCalendar)
-	gCalendar.loadCalendar(calendarPath)
+	err := gCalendar.loadCalendar(calendarPath)
+	if nil != err {
+		gCalendar = nil
+		return nil, fmt.Errorf("载入日历数据出错, 信息为:%s", err.Error())
+	}
 
 	return gCalendar, nil
+}
+
+func (cal *StockCalendar)Each(f func(dateItem CalendarModel) error) error {
+	for _, row := range cal.calendarDF.Maps() {
+		prevDate := 0
+		if row["prevTradeDate"] != nil {
+			prevDate = row["prevTradeDate"].(int)
+		}
+		dateItem := NewCalendarModel(row["calendarDate"].(int), row["isOpen"].(bool), prevDate,
+			row["isWeekEnd"].(bool), row["isMonthEnd"].(bool), row["isQuarterEnd"].(bool), row["isYearEnd"].(bool))
+		err := f(dateItem)
+		if nil != err {
+			return err
+		}
+	}
+
+	return nil
 }
 
 /**
@@ -67,12 +104,14 @@ func (cal *StockCalendar)PrevDay(day string) (string, error) {
 }
 
 
-func (cal *StockCalendar) loadCalendar(calendarPath string){
+func (cal *StockCalendar) loadCalendar(calendarPath string) error{
 	colTypes := map[string]series.Type{
 		"calendarDate": series.Int, "isOpen": series.Bool, "prevTradeDate": series.Int, "isWeekEnd": series.Bool,
 		"isMonthEnd": series.Bool, "isQuarterEnd": series.Bool, "isYearEnd": series.Bool}
 
 	cal.calendarDF = utils.ReadCSV(calendarPath, dataframe.WithTypes(colTypes))
+
+	return cal.calendarDF.Err
 }
 
 // # 深交所股票代码规则

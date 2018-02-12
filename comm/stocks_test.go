@@ -8,7 +8,7 @@ import (
 
 func TestStockCalendar(t *testing.T) {
 	configure := new(Conf)
-	configure.Parse("/Users/datochan/WorkSpace/GoglandProjects/src/ctdx/configure.toml")
+	configure.Parse("/Users/datochan/WorkSpace/GoglandProjects/src/cquant/configure.toml")
 
 	Convey("检测默认股票日历实例的生成", t, func() {
 		// 默认加载股票日历数据
@@ -27,6 +27,16 @@ func TestStockCalendar(t *testing.T) {
 			So(err, ShouldEqual, nil)
 			So(prev, ShouldEqual, "20170929")
 		})
+
+		Convey("测试股市日历的遍历情况", func() {
+			calendar.Each(func (dateItem CalendarModel) error{
+				if dateItem.Date == 19981231 {
+					So(dateItem.YearEnd, ShouldBeTrue)
+				}
+				return nil
+			})
+		})
+
 
 	})
 }

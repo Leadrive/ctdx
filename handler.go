@@ -278,7 +278,7 @@ func (client *TdxClient) onStockDayHistory(market int, code string, stockLength 
 		stockDayModel := StockDayModel{market, code, int(stockDayItem.Date),
 			float64(stockDayItem.Open)/100.0,float64(stockDayItem.Low)/100.0,
 			float64(stockDayItem.High)/100.0,float64(stockDayItem.Close)/100.0,
-			int(stockDayItem.Volume),float64(stockDayItem.Amount)/100.0}
+			int(stockDayItem.Volume),float64(stockDayItem.Amount)}
 
 		stockDaysList = append(stockDaysList, stockDayModel)
 	}

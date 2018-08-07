@@ -81,7 +81,7 @@ type StockDayItem struct {
      High       uint32
      Low        uint32
      Close      uint32
-     Amount     uint32
+     Amount     float32
      Volume     uint32
      Unknown1   uint32
 }

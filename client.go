@@ -35,7 +35,7 @@ type TdxClient struct {
 	CoreVersion float32		// 数据引擎版本 = 5.895
 	lastTrade   LastTradeModel
 
-	stockBaseDF dataframe.DataFrame
+	stockBaseDF    dataframe.DataFrame
 	stockbonusDF   dataframe.DataFrame
 }
 

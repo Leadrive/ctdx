@@ -43,6 +43,10 @@ func NewDefaultTdxClient(configure comm.IConfigure) *TdxClient {
 	return &TdxClient{MainVersion:7.29, CoreVersion:5.895, Configure:configure, Finished:make(chan interface{})}
 }
 
+func (client *TdxClient) GetLastTradeDate() uint32 {
+    return client.lastTrade.SZDate
+}
+
 /**
  * 关闭连接
  */
@@ -166,7 +170,7 @@ CONTINUE:
  */
 func (client *TdxClient) UpdateStockBonus(){
 	// 股指基
-	df := comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
+	df := comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS, comm.INDUSTRY)
 	if nil != df.Err {
 		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", df))
 		return
@@ -200,7 +204,7 @@ func (client *TdxClient) UpdateDays(){
 	if nil != err { logger.Error(fmt.Sprintf("UpdateDays Err:%v", err)); return }
 
 	// 股指基
-	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
+	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS, comm.INDUSTRY)
 	if nil != client.stockBaseDF.Err {
 		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", client.stockBaseDF))
 		return
@@ -278,14 +282,13 @@ func (client *TdxClient) UpdateMins(){
 	if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
 
 	// 股指基
-	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
+	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS, comm.INDUSTRY)
 	if nil != client.stockBaseDF.Err {
 		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", client.stockBaseDF))
 		return
 	}
 
 	today, _ := strconv.Atoi(utils.Today())
-
 	minItem := pkg.GenerateStockMinsItem(0, "", 0, 0, 0)
 	client.dispatcher.AddHandler(uint32(minItem.EventId), client.OnStockHistory)
 
@@ -317,12 +320,10 @@ func (client *TdxClient) UpdateMins(){
 			idx := utils.FindInStringSlice("date", stockItemDF.Names())
 			nextDays, err = calendar.NextDay(stockItemDF.Elem(stockItemDF.Nrow()-1, idx).String())
 			if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
-
 			if strings.Compare(nextDays, start) > 0  { start = nextDays }
 		}
 
 		tmpStart, _ := strconv.Atoi(start)
-
 		for tmpEnd:=0; tmpEnd < today;  {
 			resultDate := utils.AddDaysExceptWeekend(fmt.Sprintf("%d", tmpStart), 0x0F)
 			nResultDate, _ := strconv.Atoi(resultDate)
@@ -338,9 +339,6 @@ func (client *TdxClient) UpdateMins(){
 	}
 }
 
-/**
- * 更新财报信息
- */
 func (client *TdxClient) UpdateReport(){
 	var noneTotal int
 
@@ -351,24 +349,24 @@ func (client *TdxClient) UpdateReport(){
 	for idx:=len(cwList); idx>0; idx-- {
 		item := cwList[idx-1]
 		// 如果一行的数据长度过短则是无效数据
-		if 5 >= len(item) { noneTotal += 1; continue }
+		if 5 >= len(item) {
+            noneTotal += 1;
+            continue
+        }
 
 		itemList := strings.Split(item, ",")
 		fileName := itemList[0]
 		fileHash := itemList[1]
-		filePath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath,
-			client.Configure.GetTdx().Files.StockReport, fileName)
+		filePath := fmt.Sprintf("%s%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockReport, fileName)
 
 		hashResult, _ := crypto.EncryptMd5Sum(filePath)
-
 		if 0 == strings.Compare(fileHash, hashResult) {
-			logger.Info(fmt.Sprintf("财报文件 %s 没有变化, 无需更新 ... ", fileName))
+			logger.Info(fmt.Sprintf("财报文件 %s idx:%d, total:%d 没有变化, 无需更新.", fileName, idx, len(cwList)))
 			continue
 		}
 
 		logger.Info(fmt.Sprintf("更新财报文件 %s ... ", fileName))
 		err := os.Remove(filePath)
-
 		if nil != err {
 			pathErr, ok := err.(*os.PathError)
 			if ! ok {
@@ -381,7 +379,9 @@ func (client *TdxClient) UpdateReport(){
 		reportUrl = fmt.Sprintf("%s/%s", client.Configure.GetTdx().Urls.StockFin, fileName)
 		content := cnet.HttpRequest(reportUrl, "", "", "", "")
 		err = ioutil.WriteFile(filePath, content, 0666)
-		if nil != err { logger.Error(fmt.Sprintf("更新财报文件 `%s` 失败, Err: %v", fileName, err)); return }
+		if nil != err {
+            logger.Error(fmt.Sprintf("更新财报文件 `%s` 失败, Err: %v", fileName, err));
+            return
+        }
 	}
-
 }

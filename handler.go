@@ -73,21 +73,15 @@ func (client *TdxClient) OnStockCount(session cnet.ISession, packet interface{})
 	if respNode.CmdId == 0x6C { client.lastTrade.SHCount = uint32(stockCount) } // 上海股票数量
 }
 
-
 func (client *TdxClient) onSTStocks(){
 	isAppend := false
 	var stList [][]string
 
 	// 市场最后交易日期
 	nowDate := int(client.lastTrade.SZDate)
-
 	stockSTPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockSt)
-
-	colTypes := map[string]series.Type{ "date": series.Int, "code": series.String, "name": series.String,
-		"flag": series.String}
-
+	colTypes := map[string]series.Type{ "date": series.Int, "code": series.String, "name": series.String, "flag": series.String}
 	stockItemDF := utils.ReadCSV(stockSTPath, dataframe.WithTypes(colTypes))
-
 	start := nowDate
 	if nil == stockItemDF.Err {
 		// 获取最后一条记录的日期
@@ -238,25 +232,20 @@ func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{})
 		logger.Error(fmt.Sprintf("加载权息数据时发生错误:%v", bonusDF.Err))
 		return
 	}
-
 	if 0 >= client.stockbonusDF.Nrow() {
 		client.stockbonusDF = bonusDF
 	} else {
 		client.stockbonusDF = client.stockbonusDF.RBind(bonusDF)
 	}
-
 	if stockBonusFinishedIdx != respNode.Index {
 		client.bonusFinishedChan <- int(stockCount)
 		return
 	}
-
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
-
 	client.stockbonusDF.SetNames("code", "date", "market", "type", "money", "price", "count", "rate")
 	calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockBonus)
 	utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
-
 	client.Finished <- nil
 	return
 }
@@ -265,16 +254,12 @@ func (client *TdxClient) onStockDayHistory(market int, code string, stockLength 
 	var newBuffer bytes.Buffer
 	var stockDayItem pkg.StockDayItem
 	var stockDaysList []StockDayModel
-
 	itemSize := utils.SizeStruct(pkg.StockMinsItem{})
 	stockCount := int(stockLength)/itemSize
-
 	for idx:=0; idx<stockCount; idx++{
 		tmpBuffer, _ := littleEndianBuffer.ReadBuff(itemSize)
 		newBuffer.Write(tmpBuffer)
-
 		binary.Read(&newBuffer, binary.LittleEndian, &stockDayItem)
-
 		stockDayModel := StockDayModel{market, code, int(stockDayItem.Date),
 			float64(stockDayItem.Open)/100.0,float64(stockDayItem.Low)/100.0,
 			float64(stockDayItem.High)/100.0,float64(stockDayItem.Close)/100.0,
@@ -282,14 +267,11 @@ func (client *TdxClient) onStockDayHistory(market int, code string, stockLength 
 
 		stockDaysList = append(stockDaysList, stockDayModel)
 	}
-
 	if 0 >= len(stockDaysList) {
 		return dataframe.DataFrame{Err: fmt.Errorf("没有任何行情数据")}
 	}
-
 	return dataframe.LoadStructs(stockDaysList)
 }
-
 
 func (client *TdxClient) onStockMinsHistory(market int, code string, stockLength int, littleEndianBuffer *gbytes.LittleEndianStreamImpl) dataframe.DataFrame {
 	var newBuffer bytes.Buffer
@@ -319,11 +301,9 @@ func (client *TdxClient) onStockMinsHistory(market int, code string, stockLength
 
 		stockMinsList = append(stockMinsList, stockMinsModel)
 	}
-
 	if 0 >= len(stockMinsList) {
 		return dataframe.DataFrame{Err: fmt.Errorf("没有任何行情数据")}
 	}
-
 	return dataframe.LoadStructs(stockMinsList)
 }
 
@@ -347,18 +327,14 @@ func (client *TdxClient) OnStockHistory(session cnet.ISession, packet interface{
 		if p := recover(); p != nil {
 			fmt.Printf("panic recover! p: %v", p)
 		}
-
 	}()
-
 	respNode := packet.(pkg.ResponseNode)
-
 	if 0xffff == respNode.Index {
 		// 更新结束
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
 		client.Finished <- nil
 		return
 	}
-
 	// 收到盘后行情数据
 	littleEndianBuffer := gbytes.NewLittleEndianStream(respNode.RawData.([]byte))
 

@@ -157,11 +157,12 @@ const (
 	STOCKB           // B股个股
 	FUNDS            // 基金
 	INDEX            // 指数
-	BOND             // 债券 ...
+	BOND             // 债券
+    INDUSTRY         // 行业指数 ...
 )
 
 /**
- * 获取股票、基金、指数等信息
+ * 获取股票、基金、指数、行业等信息
  */
 func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
 	stocksPath := fmt.Sprintf("%s%s", conf.GetApp().DataPath, conf.GetTdx().Files.StockList)
@@ -176,6 +177,11 @@ func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
 	if nil != baseDF.Err { return baseDF }
 
 	for idx, item := range baseDF.Maps() {
+		// 行业板块
+		if 0 <= utils.FindInIntegerSlice(INDUSTRY, types) {
+			if 0 == strings.Index(item["code"].(string), "880") { recordIdx = append(recordIdx, idx) }
+		}
+
 		// A股个股
 		if 0 <= utils.FindInIntegerSlice(STOCKA, types) {
 			if 0 == item["market"] {

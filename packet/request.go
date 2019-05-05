@@ -1,8 +1,8 @@
 package packet
 
 import (
-	"bytes"
 	"time"
+	"bytes"
 	"strconv"
 	"math/rand"
 	"encoding/hex"
@@ -33,8 +33,7 @@ func GenerateHeader(eventId uint16, cmdId uint16, pkgLen uint16, isRaw byte, idx
 	newBuffer := new(bytes.Buffer)
 	rand.Seed(time.Now().UnixNano())
 
-	binary.Write(newBuffer, binary.LittleEndian,
-		header{0x0C,idx,cmdId,isRaw,pkgLen+2,pkgLen+2,eventId})
+	binary.Write(newBuffer, binary.LittleEndian, header{0x0C,idx,cmdId,isRaw,pkgLen+2,pkgLen+2,eventId})
 	return newBuffer.Bytes()
 }
 
@@ -69,9 +68,7 @@ func GenerateDeviceNode(mainVersion , coreVersion float32) RequestNode {
 
 	macAddr := [12]byte{}
 	copy(macAddr[:], []byte(utils.RandomMacAddress()))
-	deviceInfo := deviceInfo{[110]byte{}, 0x01040000, 0,
-		mainVersion, coreVersion, 0,[47]byte{},
-		macAddr, [89]byte{}}
+	deviceInfo := deviceInfo{[110]byte{}, 0x01040000, 0, mainVersion, coreVersion, 0,[47]byte{}, macAddr, [89]byte{}}
 	binary.Write(&newBuffer, binary.LittleEndian, deviceInfo)
 
 	pkgBuffer := crypto.Blowfish(newBuffer.Bytes())
@@ -131,7 +128,7 @@ func GenerateNotice() RequestNode {
 
 // 请求股票基础信息
 type marketStockBase struct {
-	market   		uint16 // 深圳0, 上海1
+	market		uint16 // 深圳0, 上海1
 	stockOffset		uint16 // 要获取的股票信息偏移
 }
 
@@ -201,26 +198,24 @@ func GenerateStockDayItem(market uint16, code string, start, end uint32, index u
 
 	copy(byCode[:], []byte(code))
 
-	binary.Write(&newBuffer, binary.LittleEndian,
-		stockHistoryItem{market, byCode, start, end, 0x0004})
+	binary.Write(&newBuffer, binary.LittleEndian, stockHistoryItem{market, byCode, start, end, 0x0004})
 	reqNode.RawData = newBuffer.Bytes()
 
 	return reqNode
 }
 
 func GenerateStockMinsItem(market uint16, code string, start, end uint32, index uint16) RequestNode {
-	var newBuffer bytes.Buffer
+    var newBuffer bytes.Buffer
 	var reqNode RequestNode
 	var byCode [6]byte
-	reqNode.CmdId = 0x008D
+    reqNode.CmdId = 0x008D
 	reqNode.EventId = 0x0FCD
 	reqNode.IsRaw = 1
 	reqNode.Index = index
 
 	copy(byCode[:], []byte(code))
 
-	binary.Write(&newBuffer, binary.LittleEndian,
-		stockHistoryItem{market, byCode, start, end, 0})
+	binary.Write(&newBuffer, binary.LittleEndian, stockHistoryItem{market, byCode, start, end, 0})
 	reqNode.RawData = newBuffer.Bytes()
 
 	return reqNode

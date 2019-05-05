@@ -8,6 +8,7 @@ import (
 type CApp struct {
 	Mode string `toml:"mode"`
 	DataPath string `toml:"data_path"`
+    DataInfoFile string `toml:"data_info_file"`
 	Logger struct {
 		Level string `toml:"level"`
 		Name string `toml:"name"`

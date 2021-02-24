@@ -190,7 +190,7 @@ func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
 			}
 
 			if 1 == item["market"] {
-				if 0 == strings.Index(item["code"].(string), "60") { recordIdx = append(recordIdx, idx) }
+				if 0 == strings.Index(item["code"].(string), "6") { recordIdx = append(recordIdx, idx) }
 			}
 		}
 

@@ -4,19 +4,18 @@ import (
 	"os"
 	"fmt"
 	"bytes"
-	"encoding/hex"
-	"encoding/binary"
-	"github.com/kniren/gota/dataframe"
-
-	gbytes "github.com/datochan/gcom/bytes"
-	"github.com/datochan/gcom/utils"
-	"github.com/datochan/gcom/logger"
-
-	pkg "github.com/datochan/ctdx/packet"
-	"github.com/datochan/gcom/cnet"
-	"github.com/kniren/gota/series"
 	"strings"
 	"strconv"
+	"encoding/hex"
+    "path/filepath"
+	"encoding/binary"
+	"github.com/datochan/gcom/cnet"
+	"github.com/kniren/gota/series"
+	"github.com/datochan/gcom/utils"
+	"github.com/datochan/gcom/logger"
+	"github.com/kniren/gota/dataframe"
+    pkg "test_tdx/ctdx/packet"
+	gbytes "github.com/datochan/gcom/bytes"
 )
 
 func UnknownPkgHandler(session cnet.ISession, packet interface{}) {
@@ -180,11 +179,14 @@ func (client *TdxClient) OnStockBase(session cnet.ISession, packet interface{}){
 	if client.stockBaseDF.Nrow() >= int(client.lastTrade.SZCount + client.lastTrade.SHCount) {
 		// 更新结束
 		client.stockBaseDF.SetNames("code", "name", "market", "unknown1", "unknown2", "unknown3", "price", "bonus1", "bonus2")
-		stockBasePath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
-		utils.WriteCSV(stockBasePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
-
+        stockBasePath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockList)
+        utils.WriteCSV(stockBasePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
+        uptime := client.GetLastTradeDate()
+        fdir := filepath.Join(filepath.Dir(stockBasePath), "stocks")
+        fname := fmt.Sprintf("%d.csv", uptime)
+        backupPath := filepath.Join(fdir, fname)
+        utils.WriteCSV(backupPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockBaseDF)
 		client.dispatcher.DelHandler(uint32(respNode.EventId))
-
 		client.onSTStocks()
 		client.Finished <- nil
 	}
@@ -197,6 +199,8 @@ func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{})
 	var newBuffer bytes.Buffer
 	var bonusItem pkg.StockBonusItem
 	var bonusList []StockBonusModel
+	var finisedCodes []string
+    var code string
 
 	respNode := packet.(pkg.ResponseNode)
 	itemSize := utils.SizeStruct(pkg.StockBonusItem{})
@@ -204,47 +208,54 @@ func (client *TdxClient) OnStockBonus(session cnet.ISession, packet interface{})
 
 	stockCount, _ := littleEndianBuffer.ReadUint16()  // 读取股票数量
 
-	logger.Info("\t收到 %d 只股票的权息数据...", stockCount)
+	//logger.Info("\t收到 %d 只股票的权息数据...", stockCount)
 
 	for stockIdx :=0; stockIdx < int(stockCount); stockIdx++ {
 		littleEndianBuffer.ReadBuff(7)  // 跳过股票代码与市场标识
 		bonusCount, _ := littleEndianBuffer.ReadUint16()  // 某只股票的权息条数
-
 		for bonusIdx:=0;bonusIdx<int(bonusCount);bonusIdx++ {
 			tmpBuffer, _ := littleEndianBuffer.ReadBuff(itemSize)
 			newBuffer.Write(tmpBuffer)
-
 			binary.Read(&newBuffer, binary.LittleEndian, &bonusItem)
-
-			bonusModel := StockBonusModel{ gbytes.BytesToString(bonusItem.Code[:]),
-				int(bonusItem.Date),
-				int(bonusItem.Market),int(bonusItem.Type),
-				float64(bonusItem.Money),float64(bonusItem.Price), float64(bonusItem.Count),
-				float64(bonusItem.Rate)}
-
+            code = gbytes.BytesToString(bonusItem.Code[:])
+			bonusModel := StockBonusModel{code, int(bonusItem.Date),
+                int(bonusItem.Market), int(bonusItem.Type),
+				float64(bonusItem.Money), float64(bonusItem.Price),
+                float64(bonusItem.Count), float64(bonusItem.Rate)}
 			bonusList = append(bonusList, bonusModel)
 		}
+		finisedCodes = append(finisedCodes, code)
 	}
-
-	// 更新结束
-	bonusDF := dataframe.LoadStructs(bonusList)
-	if nil != bonusDF.Err {
-		logger.Error(fmt.Sprintf("加载权息数据时发生错误:%v", bonusDF.Err))
-		return
-	}
-	if 0 >= client.stockbonusDF.Nrow() {
-		client.stockbonusDF = bonusDF
-	} else {
-		client.stockbonusDF = client.stockbonusDF.RBind(bonusDF)
-	}
+    if len(bonusList) > 0 {
+        // 更新结束
+        bonusDF := dataframe.LoadStructs(bonusList)
+	    if nil != bonusDF.Err {
+            logger.Error(fmt.Sprintf("加载权息数据时发生错误:%v", bonusDF.Err))
+            return
+	    }
+	    if 0 >= client.stockbonusDF.Nrow() {
+            client.stockbonusDF = bonusDF
+	    } else {
+            client.stockbonusDF = client.stockbonusDF.RBind(bonusDF)
+	    }
+    }
 	if stockBonusFinishedIdx != respNode.Index {
-		client.bonusFinishedChan <- int(stockCount)
+        for _, code = range finisedCodes{
+		    client.bonusFinishedChan <- code
+        }
 		return
 	}
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
 	client.stockbonusDF.SetNames("code", "date", "market", "type", "money", "price", "count", "rate")
-	calendarPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockBonus)
-	utils.WriteCSV(calendarPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
+    bonusPath := fmt.Sprintf("%s%s", client.Configure.GetApp().DataPath, client.Configure.GetTdx().Files.StockBonus)
+    utils.WriteCSV(bonusPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
+
+    uptime := client.GetLastTradeDate()
+    fdir := filepath.Join(filepath.Dir(bonusPath), "bonus")
+    fname := fmt.Sprintf("%d.csv", uptime)
+    backupPath := filepath.Join(fdir, fname)
+    utils.WriteCSV(backupPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, &client.stockbonusDF)
+
 	client.dispatcher.DelHandler(uint32(respNode.EventId))
 	client.Finished <- nil
 	return

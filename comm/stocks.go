@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/kniren/gota/series"
+    //"github.com/datochan/gcom/logger"
 	"github.com/kniren/gota/dataframe"
 
 	"github.com/datochan/gcom/utils"
@@ -15,7 +16,7 @@ var gCalendar *StockCalendar
 
 
 type CalendarModel struct {
-	Date 		int
+	Date		int
 	Open		bool
 	prevDate    int
 	WeekEnd		bool
@@ -179,7 +180,7 @@ func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
 	for idx, item := range baseDF.Maps() {
 		// 行业板块
 		if 0 <= utils.FindInIntegerSlice(INDUSTRY, types) {
-			if 0 == strings.Index(item["code"].(string), "880") { recordIdx = append(recordIdx, idx) }
+			if 0 == strings.Index(item["code"].(string), "88") { recordIdx = append(recordIdx, idx) }
 		}
 
 		// A股个股
@@ -247,7 +248,6 @@ func GetFinanceDataFrame(conf IConfigure, types ...int) dataframe.DataFrame{
 			}
 		}
 	}
-
 	return baseDF.Subset(recordIdx)
 }
 

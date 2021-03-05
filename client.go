@@ -3,7 +3,10 @@ package ctdx
 import (
 	"os"
 	"fmt"
+	"strings"
 	"strconv"
+	"io/ioutil"
+    "test_tdx/ctdx/comm"
 
 	"github.com/kniren/gota/series"
 	"github.com/kniren/gota/dataframe"
@@ -13,10 +16,7 @@ import (
 	"github.com/datochan/gcom/utils"
 	"github.com/datochan/gcom/logger"
 
-	"github.com/datochan/ctdx/comm"
-	pkg "github.com/datochan/ctdx/packet"
-	"strings"
-	"io/ioutil"
+    pkg "test_tdx/ctdx/packet"
 )
 
 const (
@@ -27,7 +27,7 @@ type TdxClient struct {
 	session     *cnet.SyncSession
 	dispatcher  *CTdxDispatcher
 
-	bonusFinishedChan   chan int   // 用于更新权息数据时同步已处理的数据
+    bonusFinishedChan chan string   // 用于更新权息数据时同步已处理的数据
 
 	Finished    chan interface{}
 	Configure   comm.IConfigure
@@ -124,44 +124,25 @@ func (client *TdxClient) UpdateStockBase(){
 
 func  (client *TdxClient)updateBonus(df *dataframe.DataFrame){
 	// 筛选掉已经处理过的数据
+    var finishedCode string
 	var row map[string]interface{}
 	var stockBonus []pkg.StockBonus
-	var finishedIdx int
-	var idx int
-
-	logger.Info("开始接收高送转数据...")
-	filterDf := utils.ReIndex(df)
-
-CONTINUE:
-	filterDf = filterDf.Filter(dataframe.F{utils.IndexColName, series.GreaterEq, finishedIdx})
-
-	for idx, row = range filterDf.Maps() {
-		if idx < 0xC8 {
-			var code [6]byte
-			market := byte(row["market"].(int))
-			strCode := row["code"].(string)
-			copy(code[:], []byte(strCode))
-			bonusItem := pkg.StockBonus{market, code}
-			stockBonus = append(stockBonus, bonusItem)
-
-			continue
-		}
-
+    logger.Info("开始接收高送转数据...")
+	for _, row = range df.Maps() {
+        var code [6]byte
+        market := byte(row["market"].(int))
+        strCode := row["code"].(string)
+        copy(code[:], []byte(strCode))
+        bonusItem := pkg.StockBonus{market, code}
+        stockBonus = append(stockBonus, bonusItem)
 		reqNode := pkg.GenerateStockBonus(stockBonus, 0)
 		client.session.Send(reqNode)
-
-		finishedIdx += <- client.bonusFinishedChan
-
-		stockBonus = []pkg.StockBonus{}
-		idx = 0
-		goto CONTINUE
+		finishedCode =<-client.bonusFinishedChan
+        logger.Info("%s 接受完成", finishedCode)
+        stockBonus = []pkg.StockBonus{}
 	}
-
-	if idx > 0 {
-		reqNode := pkg.GenerateStockBonus(stockBonus, stockBonusFinishedIdx)
-		client.session.Send(reqNode)
-	}
-
+	reqNode := pkg.GenerateStockBonus(stockBonus, stockBonusFinishedIdx)
+	client.session.Send(reqNode)
 	logger.Info("高送转数据接收完毕...")
 }
 
@@ -176,7 +157,7 @@ func (client *TdxClient) UpdateStockBonus(){
 		return
 	}
 
-	client.bonusFinishedChan = make(chan int)
+	client.bonusFinishedChan = make(chan string)
 	stockBonus := pkg.GenerateStockBonus(nil, 0)
 	client.dispatcher.AddHandler(uint32(stockBonus.EventId), client.OnStockBonus)
 
@@ -282,7 +263,7 @@ func (client *TdxClient) UpdateMins(){
 	if nil != err { logger.Error(fmt.Sprintf("UpdateMins Err:%v", err)); return }
 
 	// 股指基
-	client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS, comm.INDUSTRY)
+    client.stockBaseDF = comm.GetFinanceDataFrame(client.Configure, comm.STOCKA, comm.STOCKB, comm.INDEX, comm.FUNDS)
 	if nil != client.stockBaseDF.Err {
 		logger.Error(fmt.Sprintf("读取股票基础数据失败! err:%v", client.stockBaseDF))
 		return
@@ -290,7 +271,7 @@ func (client *TdxClient) UpdateMins(){
 
 	today, _ := strconv.Atoi(utils.Today())
 	minItem := pkg.GenerateStockMinsItem(0, "", 0, 0, 0)
-	client.dispatcher.AddHandler(uint32(minItem.EventId), client.OnStockHistory)
+    client.dispatcher.AddHandler(uint32(minItem.EventId), client.OnStockHistory)
 
 	for idx, row := range client.stockBaseDF.Maps() {
 		var code [6]byte
@@ -339,6 +320,9 @@ func (client *TdxClient) UpdateMins(){
 	}
 }
 
+/**
+ * 更新财报信息
+ */
 func (client *TdxClient) UpdateReport(){
 	var noneTotal int
 
@@ -349,10 +333,7 @@ func (client *TdxClient) UpdateReport(){
 	for idx:=len(cwList); idx>0; idx-- {
 		item := cwList[idx-1]
 		// 如果一行的数据长度过短则是无效数据
-		if 5 >= len(item) {
-            noneTotal += 1;
-            continue
-        }
+		if 5 >= len(item) { noneTotal += 1; continue }
 
 		itemList := strings.Split(item, ",")
 		fileName := itemList[0]
@@ -361,7 +342,7 @@ func (client *TdxClient) UpdateReport(){
 
 		hashResult, _ := crypto.EncryptMd5Sum(filePath)
 		if 0 == strings.Compare(fileHash, hashResult) {
-			logger.Info(fmt.Sprintf("财报文件 %s idx:%d, total:%d 没有变化, 无需更新.", fileName, idx, len(cwList)))
+			logger.Info(fmt.Sprintf("财报文件 %s 没有变化, 无需更新 ... ", fileName))
 			continue
 		}
 
@@ -379,9 +360,6 @@ func (client *TdxClient) UpdateReport(){
 		reportUrl = fmt.Sprintf("%s/%s", client.Configure.GetTdx().Urls.StockFin, fileName)
 		content := cnet.HttpRequest(reportUrl, "", "", "", "")
 		err = ioutil.WriteFile(filePath, content, 0666)
-		if nil != err {
-            logger.Error(fmt.Sprintf("更新财报文件 `%s` 失败, Err: %v", fileName, err));
-            return
-        }
+		if nil != err { logger.Error(fmt.Sprintf("更新财报文件 `%s` 失败, Err: %v", fileName, err)); return }
 	}
 }

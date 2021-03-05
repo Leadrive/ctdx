@@ -168,8 +168,7 @@ func GenerateStockBonus(stocks []StockBonus, index uint16) RequestNode {
 	count := uint16(len(stocks))
 	err := binary.Write(&newBuffer, binary.LittleEndian, count)
 	if nil != err {
-		logger.Error("%v", err)
-
+		logger.Error("generate stock bonus err %v", err)
 	}
 
 	binary.Write(&newBuffer, binary.LittleEndian, stocks)
